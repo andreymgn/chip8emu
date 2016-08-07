@@ -1,9 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <time.h>
 
 #include "chip8.h"
 
-void chip*_start(char *game_path) {
+void chip8_start(char *game_path) {
         C8 emu;
         chip8_load_game(&emu, game_path);
         chip8_init(&emu);
@@ -63,7 +65,7 @@ void chip8_execute_opcode(C8 *emu) {
         unsigned short x;
         unsigned short y;
         unsigned short n;
-        emu->opcode = emu->memory[emu->pc] << 8 | memory[emu->pc + 1];
+        emu->opcode = emu->memory[emu->pc] << 8 | emu->memory[emu->pc + 1];
 
         switch (emu->opcode & 0xF000) {
         case 0x0000:
@@ -94,7 +96,7 @@ void chip8_execute_opcode(C8 *emu) {
 
         case 0x2000:
         /* 0x2NNN - calls subroutine at NNN */
-                emu->stack[sp] = pc;
+                emu->stack[emu->sp] = emu->pc;
                 emu->sp++;
                 emu->pc = emu->opcode & 0x0FFF;
                 break;
@@ -296,7 +298,7 @@ void chip8_execute_opcode(C8 *emu) {
                                 if ((pixel & (0x80 >> xline)) != 0) {
                                         int pixel_index = x+xline+(y+yline)*64;
                                         if (emu->graphics[pixel_index] == 1)
-                                                V[0xF] = 1;
+                                                emu->V[0xF] = 1;
                                         emu->graphics[pixel_index] ^= 1;
                                 }
                         }
@@ -404,9 +406,9 @@ void chip8_execute_opcode(C8 *emu) {
                 /* 0xFX33 - Stores the Binary-coded decimal representation
                 of VX at the addresses I, I plus 1, and I plus 2 */
                         x = (emu->opcode & 0x0F00) >> 8;
-                        emu->memory[I] = V[x] / 100;
-			emu->memory[I + 1] = (V[x] / 10) % 10;
-			emu->memory[I + 2] = (V[x] % 100) % 10;
+                        emu->memory[emu->I] = emu->V[x] / 100;
+			emu->memory[emu->I + 1] = (emu->V[x] / 10) % 10;
+			emu->memory[emu->I + 2] = (emu->V[x] % 100) % 10;
                         emu->pc += 2;
                         break;
 
@@ -435,5 +437,6 @@ void chip8_execute_opcode(C8 *emu) {
                 }
                 break;
 
+                }
         }
 }

@@ -1,6 +1,9 @@
 #ifndef __CHIP8_H__
 #define __CHIP8_H__
 
+#include <stdbool.h>
+#include <stdio.h>
+
 #define MEMORY_SIZE 4096
 
 const char chip8_fontset[80] = {
@@ -20,7 +23,7 @@ const char chip8_fontset[80] = {
         0xE0, 0x90, 0x90, 0x90, 0xE0, /* D */
         0xF0, 0x80, 0xF0, 0x80, 0xF0, /* E */
         0xF0, 0x80, 0xF0, 0x80, 0x80  /* F */
-}
+};
 
 typedef struct chip8 {
         FILE *game;
