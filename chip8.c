@@ -16,7 +16,7 @@ void chip8_start(char *game_path) {
 
         chip8_load_game(&emu, game_path);
         chip8_init(&emu);
-        chip8_init_graphics(&graphics);
+        chip8graphics_init(&graphics);
 
         while (!emu.should_quit) {
                 if (SDL_PollEvent(&event))
