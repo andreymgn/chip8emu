@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <SDL.h>
 
 #define MEMORY_SIZE 4096
 
@@ -40,13 +41,13 @@ typedef struct chip8 {
         unsigned short sp;
         unsigned char key[16];
         bool should_draw;
+        bool should_quit;
 } C8;
 
 void chip8_start(char*);
 void chip8_load_game(C8*, char*);
 void chip8_init(C8*);
-void chip8_init_graphics(C8*);
-void chip8_draw(C8*);
 void chip8_execute_opcode(C8*);
+void chip8_handle_events(C8*, SDL_Event*);
 
-#endif
+#endif /* __CHIP8_H__ */

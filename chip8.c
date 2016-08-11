@@ -1,21 +1,35 @@
+#include <SDL.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <stdbool.h>
 
 #include "chip8.h"
+#include "chip8graphics.h"
 
 void chip8_start(char *game_path) {
         C8 emu;
+        C8graphics graphics;
+        SDL_Event event;
+
         chip8_load_game(&emu, game_path);
         chip8_init(&emu);
+        chip8_init_graphics(&graphics);
 
-        while (true) {
+        while (!emu.should_quit) {
+                if (SDL_PollEvent(&event))
+                        continue;
                 chip8_execute_opcode(&emu);
+
                 if (emu.should_draw)
-                        chip8_draw(&emu);
-                chip8_handle_keyboard_event();
+                        chip8graphics_draw(&graphics, &emu);
+                chip8_handle_events(&emu, &event);
+                SDL_Delay(15);
         }
+
+        chip8graphics_destroy(&graphics);
 }
 
 void chip8_load_game(C8 *emu, char *game_path) {
@@ -24,7 +38,6 @@ void chip8_load_game(C8 *emu, char *game_path) {
                 fprintf(stderr, "Error opening file %s\n", game_path);
                 exit(1);
         }
-
 
         /* load game into memory */
         fread(emu->memory+0x200, 1, MEMORY_SIZE-0x200, emu->game);
@@ -58,6 +71,7 @@ void chip8_init(C8 *emu) {
         emu->sound_timer = 0;
 
         emu->should_draw = true;
+        emu->should_quit = false;
         srand(time(NULL));
 }
 
@@ -438,5 +452,126 @@ void chip8_execute_opcode(C8 *emu) {
                 break;
 
                 }
+        }
+
+        /* update timers */
+        if (emu->delay_timer > 0)
+                emu->delay_timer--;
+        if (emu->sound_timer > 0) {
+                if (emu->sound_timer == 1)
+                        ;/* play sound */
+                emu->sound_timer--;
+        }
+}
+
+void chip8_handle_events(C8 *emu, SDL_Event *event) {
+        switch (event->type) {
+        case SDL_QUIT:
+                emu->should_quit = true;
+                break;
+        case SDL_KEYDOWN:
+                switch (event->key.keysym.sym) {
+                case SDLK_1:
+                        emu->key[0x1] = 1;
+                        break;
+                case SDLK_2:
+                        emu->key[0x2] = 1;
+                        break;
+                case SDLK_3:
+                        emu->key[0x3] = 1;
+                        break;
+                case SDLK_4:
+                        emu->key[0xC] = 1;
+                        break;
+                case SDLK_q:
+                        emu->key[0x4] = 1;
+                        break;
+                case SDLK_w:
+                        emu->key[0x5] = 1;
+                        break;
+                case SDLK_e:
+                        emu->key[0x6] = 1;
+                        break;
+                case SDLK_r:
+                        emu->key[0xD] = 1;
+                        break;
+                case SDLK_a:
+                        emu->key[0x7] = 1;
+                        break;
+                case SDLK_s:
+                        emu->key[0x8] = 1;
+                        break;
+                case SDLK_d:
+                        emu->key[0x9] = 1;
+                        break;
+                case SDLK_f:
+                        emu->key[0xE] = 1;
+                        break;
+                case SDLK_z:
+                        emu->key[0xA] = 1;
+                        break;
+                case SDLK_x:
+                        emu->key[0x0] = 1;
+                        break;
+                case SDLK_c:
+                        emu->key[0xB] = 1;
+                        break;
+                case SDLK_v:
+                        emu->key[0xF] = 1;
+                        break;
+                }
+                break;
+        case SDL_KEYUP:
+                switch (event->key.keysym.sym) {
+                case SDLK_1:
+                        emu->key[0x1] = 0;
+                        break;
+                case SDLK_2:
+                        emu->key[0x2] = 0;
+                        break;
+                case SDLK_3:
+                        emu->key[0x3] = 0;
+                        break;
+                case SDLK_4:
+                        emu->key[0xC] = 0;
+                        break;
+                case SDLK_q:
+                        emu->key[0x4] = 0;
+                        break;
+                case SDLK_w:
+                        emu->key[0x5] = 0;
+                        break;
+                case SDLK_e:
+                        emu->key[0x6] = 0;
+                        break;
+                case SDLK_r:
+                        emu->key[0xD] = 0;
+                        break;
+                case SDLK_a:
+                        emu->key[0x7] = 0;
+                        break;
+                case SDLK_s:
+                        emu->key[0x8] = 0;
+                        break;
+                case SDLK_d:
+                        emu->key[0x9] = 0;
+                        break;
+                case SDLK_f:
+                        emu->key[0xE] = 0;
+                        break;
+                case SDLK_z:
+                        emu->key[0xA] = 0;
+                        break;
+                case SDLK_x:
+                        emu->key[0x0] = 0;
+                        break;
+                case SDLK_c:
+                        emu->key[0xB] = 0;
+                        break;
+                case SDLK_v:
+                        emu->key[0xF] = 0;
+                        break;
+                }
+                break;
         }
 }
