@@ -34,16 +34,20 @@ void chip8_start(char *game_path) {
         SDL_Event event;
 
         chip8_load_game(&emu, game_path);
+        printf("Loaded game\n");
         chip8_init(&emu);
+        printf("Init emu\n");
         chip8graphics_init(&graphics);
+        printf("Init graphics\n");
 
         while (!emu.should_quit) {
+                if (SDL_PollEvent(&event))
+                        continue;
                 chip8_execute_opcode(&emu);
 
                 if (emu.should_draw)
                         chip8graphics_draw(&graphics, &emu);
-                if (SDL_PollEvent(&event))
-                        chip8_handle_events(&emu, &event);
+                chip8_handle_events(&emu, &event);
                 SDL_Delay(15);
         }
 
@@ -392,6 +396,7 @@ void chip8_execute_opcode(C8 *emu) {
                                 if (emu->key[i] != 0) {
                                         emu->V[x] = i;
                                         key_pressed = true;
+                                        break;
                                 }
                         }
                         if (!key_pressed)
