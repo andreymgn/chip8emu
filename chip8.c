@@ -33,18 +33,28 @@ void chip8_start(char *game_path) {
         C8graphics graphics;
         SDL_Event event;
 
+        const int FRAMES_PER_SECOND = 60;
+        Uint32 start_time;
+        Uint32 time_passed;
+
         chip8_load_game(&emu, game_path);
         chip8_init(&emu);
         chip8graphics_init(&graphics);
 
+        start_time = SDL_GetTicks();
         while (!emu.should_quit) {
+
                 chip8_execute_opcode(&emu);
 
-                if (emu.should_draw)
+                if (emu.should_draw) {
                         chip8graphics_draw(&graphics, &emu);
+                        time_passed = SDL_GetTicks() - start_time;
+                        if (time_passed < 1000 / FRAMES_PER_SECOND)
+                                SDL_Delay(1000 / FRAMES_PER_SECOND - time_passed);
+                        start_time = SDL_GetTicks();
+                }
                 while (SDL_PollEvent(&event))
                      chip8_handle_events(&emu, &event);
-                SDL_Delay(15);
         }
 
         chip8graphics_destroy(&graphics);
