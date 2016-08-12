@@ -324,6 +324,10 @@ void chip8_execute_opcode(C8 *emu) {
                 x = (emu->opcode & 0x0F00) >> 8;
                 y = (emu->opcode & 0x00F0) >> 4;
                 n = emu->opcode & 0x000F;
+                unsigned short vx;
+                unsigned short vy;
+                vx = emu->V[x];
+                vy = emu->V[y];
                 unsigned short pixel;
                 emu->V[0xF] = 0;
                 int xline;
@@ -332,7 +336,7 @@ void chip8_execute_opcode(C8 *emu) {
                         pixel = emu->memory[emu->I + yline];
                         for (xline = 0; xline < 8; xline++) {
                                 if ((pixel & (0x80 >> xline)) != 0) {
-                                        int pixel_index = x+xline+(y+yline)*64;
+                                        int pixel_index = vx+xline+(vy+yline)*64;
                                         if (emu->graphics[pixel_index] == 1)
                                                 emu->V[0xF] = 1;
                                         emu->graphics[pixel_index] ^= 1;
