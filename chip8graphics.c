@@ -67,4 +67,6 @@ void chip8graphics_draw(C8graphics *graphics, C8 *emu) {
                                  &(graphics->squares[y * 64 + x]),
                                  color_to_fill);
                          }
+        SDL_UpdateWindowSurface(graphics->window);
+        emu->should_draw = false;
 }
