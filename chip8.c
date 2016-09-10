@@ -104,10 +104,10 @@ void chip8_init(C8 *emu) {
 }
 
 void chip8_execute_opcode(C8 *emu) {
-        unsigned short x;
-        unsigned short y;
-        unsigned short n;
         emu->opcode = emu->memory[emu->pc] << 8 | emu->memory[emu->pc + 1];
+        unsigned short x = (emu->opcode & 0x0F00) >> 8; /* 0x*X** */
+        unsigned short y = (emu->opcode & 0x00F0) >> 4; /* 0x**Y* */
+        unsigned short n = emu->opcode & 0x00FF; /* 0x**NN */
 
         switch (emu->opcode & 0xF000) {
         case 0x0000:
@@ -145,8 +145,6 @@ void chip8_execute_opcode(C8 *emu) {
 
         case 0x3000:
         /* 0x3XNN - skips the next inxtruction if VX==NN */
-                x = (emu->opcode & 0x0F00) >> 8;
-                n = emu->opcode & 0x00FF;
                 if (emu->V[x] == n)
                         emu->pc += 4;
                 else
@@ -155,8 +153,6 @@ void chip8_execute_opcode(C8 *emu) {
 
         case 0x4000:
         /* 0x4XNN - skips the next instruction if VX!=NN */
-                x = (emu->opcode & 0x0F00) >> 8;
-                n = emu->opcode & 0x00FF;
                 if (emu->V[x] != n)
                         emu->pc += 4;
                 else
@@ -165,8 +161,6 @@ void chip8_execute_opcode(C8 *emu) {
 
         case 0x5000:
         /* 0x5XY0 - skips the next instruction if VX=VY */
-                x = (emu->opcode & 0x0F00) >> 8;
-                y = (emu->opcode & 0x00F0) >> 4;
                 if (emu->V[x] == emu->V[y])
                         emu->pc += 4;
                 else
@@ -175,16 +169,12 @@ void chip8_execute_opcode(C8 *emu) {
 
         case 0x6000:
         /* 0x6XNN - sets VX to NN */
-                x = (emu->opcode & 0x0F00) >> 8;
-                n = emu->opcode & 0x00FF;
                 emu->V[x] = n;
                 emu->pc += 2;
                 break;
 
         case 0x7000:
         /* 0x7XNN - adds NN to VX */
-                x = (emu->opcode & 0x0F00) >> 8;
-                n = emu->opcode & 0x00FF;
                 emu->V[x] += n;
                 emu->pc += 2;
                 break;
@@ -193,32 +183,24 @@ void chip8_execute_opcode(C8 *emu) {
                 switch (emu->opcode & 0x000F) {
                 case 0x0000:
                 /* 0x8XY0 - sets VX to the value of VY */
-                        x = (emu->opcode & 0x0F00) >> 8;
-                        y = (emu->opcode & 0x00F0) >> 4;
                         emu->V[x] = emu->V[y];
                         emu->pc += 2;
                         break;
 
                 case 0x0001:
                 /* 0x8XY1 - sets VX to VX | VY */
-                        x = (emu->opcode & 0x0F00) >> 8;
-                        y = (emu->opcode & 0x00F0) >> 4;
                         emu->V[x] |= emu->V[y];
                         emu->pc += 2;
                         break;
 
                 case 0x0002:
                 /* 0x8XY2 - sets VX to VX & VY */
-                        x = (emu->opcode & 0x0F00) >> 8;
-                        y = (emu->opcode & 0x00F0) >> 4;
                         emu->V[x] &= emu->V[y];
                         emu->pc += 2;
                         break;
 
                 case 0x0003:
                 /* 0x8XY3 - sets VX to VX ^ VY */
-                        x = (emu->opcode & 0x0F00) >> 8;
-                        y = (emu->opcode & 0x00F0) >> 4;
                         emu->V[x] ^= emu->V[y];
                         emu->pc += 2;
                         break;
@@ -227,8 +209,6 @@ void chip8_execute_opcode(C8 *emu) {
                 /* 0x8XY4 - adds VY to VX.
                 VF is set to 1 when there's a carry,
                 and to 0 when there isn't */
-                        x = (emu->opcode & 0x0F00) >> 8;
-                        y = (emu->opcode & 0x00F0) >> 4;
                         if (emu->V[y] > (0xFF - emu->V[x]))
                                 emu->V[0xF] = 1;
                         else
@@ -240,8 +220,6 @@ void chip8_execute_opcode(C8 *emu) {
                 case 0x0005:
                 /* 0x8XY5 - VY is subtracted from VX.
                 VF is set to 0 when there's a borrow, and 1 when there isn't */
-                        x = (emu->opcode & 0x0F00) >> 8;
-                        y = (emu->opcode & 0x00F0) >> 4;
                         if (emu->V[y] > emu->V[x])
                                 emu->V[0xF] = 0;
                         else
@@ -254,7 +232,6 @@ void chip8_execute_opcode(C8 *emu) {
                 /* 0x8XY6 - shifts VX right by one.
                 VF is set to the value of the least significant bit of VX
                 before the shift */
-                        x = (emu->opcode & 0x0F00) >> 8;
                         emu->V[0xF] = emu->V[x] & 0x1;
                         emu->V[x] >>= 1;
                         emu->pc += 2;
@@ -263,8 +240,6 @@ void chip8_execute_opcode(C8 *emu) {
                 case 0x0007:
                 /* 0x8XY7 - sets VX to VY - VX.
                 VF is set to 0 when there's a borrow, and 1 when there isn't */
-                        x = (emu->opcode & 0x0F00) >> 8;
-                        y = (emu->opcode & 0x00F0) >> 4;
                         if (emu->V[y] > emu->V[x])
                                 emu->V[0xF] = 0;
                         else
@@ -277,7 +252,6 @@ void chip8_execute_opcode(C8 *emu) {
                 /* 0x8XYE - Shifts VX left by one.
                 VF is set to the value of the most significant bit of VX
                 before the shift. */
-                        x = (emu->opcode & 0x0F00) >> 8;
                         emu->V[0xF] = emu->V[x] >> 7;
                         emu->V[x] <<= 1;
                         emu->pc += 2;
@@ -291,8 +265,6 @@ void chip8_execute_opcode(C8 *emu) {
 
         case 0x9000:
         /* 0x9XY0 - skips the next instruction if VX != VY */
-                x = (emu->opcode & 0x0F00) >> 8;
-                y = (emu->opcode & 0x00F0) >> 4;
                 if (emu->V[x] != emu->V[y])
                         emu->pc += 4;
                 else
@@ -312,14 +284,12 @@ void chip8_execute_opcode(C8 *emu) {
         case 0xC000:
         /* 0xCXNN - sets VX to the result of
         a bitwise and operation on a random number and NN */
-                x = (emu->opcode & 0x0F00) >> 8;
-                n = emu->opcode & 0x00FF;
                 emu->V[x] = (rand() % 0xFF) & n;
                 emu->pc += 2;
                 break;
 
         case 0xD000: {
-        /* Draws a sprite at coordinate (VX, VY)
+        /* 0xDXYN - draws a sprite at coordinate (VX, VY)
         that has a width of 8 pixels and a height of N pixels.
         Each row of 8 pixels is read as bit-coded starting
         from memory location I;
@@ -327,8 +297,6 @@ void chip8_execute_opcode(C8 *emu) {
         As described above, VF is set to 1 if any screen pixels are flipped
         from set to unset when the sprite is drawn,
         and to 0 if that doesn’t happen */
-                x = (emu->opcode & 0x0F00) >> 8;
-                y = (emu->opcode & 0x00F0) >> 4;
                 n = emu->opcode & 0x000F;
                 unsigned short vx;
                 unsigned short vy;
@@ -360,7 +328,6 @@ void chip8_execute_opcode(C8 *emu) {
                 case 0x009E:
                 /* 0xEX9E - skips the next instruction
                 if the key stored in VX is pressed */
-                        x = (emu->opcode & 0x0F00) >> 8;
                         if (emu->key[emu->V[x]] != 0)
                                 emu->pc += 4;
                         else
@@ -370,7 +337,6 @@ void chip8_execute_opcode(C8 *emu) {
                 case 0x00A1:
                 /* 0xEXA1 - skips the next instruction
                 if the key stored in VX isn't pressed */
-                        x = (emu->opcode & 0x0F00) >> 8;
                         if (emu->key[emu->V[x]] == 0)
                                 emu->pc += 4;
                         else
@@ -387,14 +353,12 @@ void chip8_execute_opcode(C8 *emu) {
                 switch (emu->opcode & 0x00FF) {
                 case 0x0007:
                 /* 0xFX07 - sets VX to the value of the delay timer */
-                        x = (emu->opcode & 0x0F00) >> 8;
                         emu->V[x] = emu->delay_timer;
                         emu->pc += 2;
                         break;
 
                 case 0x000A: {
                 /* 0xFX0A - a key press is awaited, and then stored in VX */
-                        x = (emu->opcode & 0x0F00) >> 8;
                         bool key_pressed = false;
 
                         int i;
@@ -414,14 +378,12 @@ void chip8_execute_opcode(C8 *emu) {
 
                 case 0x0015:
                 /* 0xFX15 - sets the delay timer to VX. */
-                        x = (emu->opcode & 0x0F00) >> 8;
                         emu->delay_timer = emu->V[x];
                         emu->pc += 2;
                         break;
 
                 case 0x0018:
                 /* 0xFX18 - sets the sound timer to VX */
-                        x = (emu->opcode & 0x0F00) >> 8;
                         emu->sound_timer = emu->V[x];
                         emu->pc += 2;
                         break;
@@ -430,7 +392,6 @@ void chip8_execute_opcode(C8 *emu) {
                 /* 0xFX1E - adds VX to I.
                 VF is set to 1 when range overflow (I+VX>0xFFF),
                 and 0 when there isn't. */
-                        x = (emu->opcode & 0x0F00) >> 8;
                         if (emu->I+emu->V[x] > 0xFFF)
                                 emu->V[0xF] = 1;
                         else
@@ -443,7 +404,6 @@ void chip8_execute_opcode(C8 *emu) {
                 /* 0xFX29 - sets I to the location of the sprite
                 for the character in VX.
                 Characters 0-F (in hexadecimal) are represented by a 4x5 font */
-                        x = (emu->opcode & 0x0F00) >> 8;
                         emu->I = emu->V[x] * 0x5;
                         emu->pc += 2;
                         break;
@@ -451,7 +411,6 @@ void chip8_execute_opcode(C8 *emu) {
                 case 0x0033:
                 /* 0xFX33 - Stores the Binary-coded decimal representation
                 of VX at the addresses I, I plus 1, and I plus 2 */
-                        x = (emu->opcode & 0x0F00) >> 8;
                         emu->memory[emu->I] = emu->V[x] / 100;
 			emu->memory[emu->I + 1] = (emu->V[x] / 10) % 10;
 			emu->memory[emu->I + 2] = (emu->V[x] % 100) % 10;
@@ -461,7 +420,6 @@ void chip8_execute_opcode(C8 *emu) {
                 case 0x0055: {
                 /* 0xFX55 - stores V0 to VX (including VX)
                 in memory starting at address I */
-                        x = (emu->opcode & 0x0F00) >> 8;
                         int i;
                         for (i = 0; i <= x; i++)
                                 emu->memory[emu->I + i] = emu->V[x];
@@ -473,7 +431,6 @@ void chip8_execute_opcode(C8 *emu) {
                 case 0x0065: {
                 /* 0xFX65 - fills V0 to VX (including VX)
                 with values from memory starting at address I */
-                        x = (emu->opcode & 0x0F00) >> 8;
                         int i;
                         for (i = 0; i <= x; i++)
                                 emu->V[i] = emu->memory[emu->I + i];
