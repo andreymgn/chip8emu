@@ -7,7 +7,7 @@
 
 #define MEMORY_SIZE 4096
 
-extern const char chip8_fontset[80];
+extern const unsigned char chip8_fontset[80];
 
 typedef struct chip8 {
         FILE *game;

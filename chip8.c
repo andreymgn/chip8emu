@@ -9,7 +9,7 @@
 #include "chip8.h"
 #include "chip8graphics.h"
 
-const char chip8_fontset[80] = {
+const unsigned char chip8_fontset[80] = {
         0xF0, 0x90, 0x90, 0x90, 0xF0, /* 0 */
         0x20, 0x60, 0x20, 0x20, 0x70, /* 1 */
         0xF0, 0x10, 0xF0, 0x80, 0xF0, /* 2 */
@@ -68,7 +68,10 @@ void chip8_load_game(C8 *emu, char *game_path) {
         }
 
         /* load game into memory */
-        fread(emu->memory+0x200, 1, MEMORY_SIZE-0x200, emu->game);
+        if (!fread(emu->memory+0x200, 1, MEMORY_SIZE-0x200, emu->game)) {
+                fprintf(stderr, "Can't load game\n");
+                exit(1);
+        }
 }
 
 void chip8_init(C8 *emu) {
@@ -278,7 +281,7 @@ void chip8_execute_opcode(C8 *emu) {
                 break;
 
         case 0xB000: /* 0xBNNN - jumps to the address NNN + V0 */
-                emu->pc = emu->opcode & 0xFFF + emu->V[0];
+                emu->pc = (emu->opcode & 0xFFF) + emu->V[0];
                 break;
 
         case 0xC000:
