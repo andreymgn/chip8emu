@@ -5,4 +5,4 @@ Uses SDL for rendering.
 # Build
 Clone repositoy, install libSDL and run ```make```
 # Run
-```./chip8emu <path_to_chip8_program>```
+```./bin/chip8emu <path_to_chip8_program>```
