@@ -11,6 +11,7 @@
 # ------------------------------------------------
 
 # project name (generate executable with this name)
+MKDIR_P  = mkdir -p
 TARGET   = chip8emu
 
 CC       = gcc
@@ -37,10 +38,12 @@ rm       = rm -f
 
 
 $(BINDIR)/$(TARGET): $(OBJECTS)
+	$(MKDIR_P) $(BINDIR)
 	@$(LINKER) $@ $(OBJECTS) $(LFLAGS)
 	@echo "Linking complete!"
 
 $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.c
+	$(MKDIR_P) $(OBJDIR)
 	@$(CC) $(CFLAGS) -c $< -o $@
 	@echo "Compiled "$<" successfully!"
 
